@@ -22,7 +22,7 @@ En este caso de ejemplo, como queremos facilitar la conexión a los diferentes e
 
 A continuación vamos a detallar los pasos a seguir
 
-
+<br/>
 
 #### Generando la clave SSH
 
@@ -36,7 +36,7 @@ ssh-keygen -q -N "" -f iac/ssh/ssh_gg
 
 Dentro del directorio “iac/ssh” se crearán dos ficheros correspondientes a las claves pública y privada.
 
-
+<br/>
 
 #### Creando la infraestructura con Terraform
 
@@ -126,7 +126,7 @@ INSERT INTO CUSTOMERS (CIF, EMAIL, TELEFONO, RAZONSOCIAL, TIPO) VALUES ('J734223
 COMMIT;
 ```
 
-
+<br/>
 
 ## Preparando la base de datos para replicación
 
@@ -174,9 +174,11 @@ exec rdsadmin.rdsadmin_util.force_logging(p_enable => true);
 exec rdsadmin.rdsadmin_util.alter_supplemental_logging('ADD','PRIMARY KEY');
 ```
 
+<br/>
+
 > **ATENCIÓN:** El script está preparado para ser lanzado en una base de datos AWS RDS Oracle, que es la que utilizamos en este ejemplo. De ahí las sentencias del tipo “exec rdsadmin.“
 
-
+<br/>
 
 ## Instalando Oracle GoldenGate Classic
 
@@ -199,7 +201,7 @@ exec rdsadmin.rdsadmin_util.alter_supplemental_logging('ADD','PRIMARY KEY');
 
 #### Instalando el producto
 
-Una vez copiados los ficheros, nos conectamos a la máquina por SSH (en la salida del script de Terraform, aparece como “oracle_ggc_public_ip”).
+Una vez copiados los ficheros, nos conectamos a la máquina por SSH (en la salida del script de Terraform, aparece como “oracle_ggc_public_ip”). Recuerda que las claves ssh las hemos generado en el apartado [Generando la clave SSH](#generando-la-clave-ssh)
 
 > Al ser instancias de EC2 basadas en RHEL, el usuario es “ec2-user”. La clave SSH se encuentra en el repositorio (“iac/ssh/ssh_gg”)
 
@@ -256,7 +258,7 @@ Cuando el proceso de instalación finalice, creamos la siguiente variable de ent
 export LD_LIBRARY_PATH=/home/ec2-user/oracle_instant_client_19c
 ```
 
-
+<br/>
 
 #### Configurando el acceso a base de datos
 
@@ -278,7 +280,7 @@ ORARDS =
   )
 ```
 
-Sustituyendo #ORACLE_RDS_ENDPOINT# por el valor correspondiente a la base de datos Oracle creada. Como se ha comentado anteriormente, el valor se puede consultar en la consola de AWS o de la salida del script de Terraform, en la clave “oracle_endpoint”
+Sustituyendo #ORACLE_RDS_ENDPOINT# por el valor correspondiente a la base de datos Oracle creada. Como se ha comentado anteriormente, el valor se puede consultar en la consola de AWS o de la salida del script de Terraform, en la clave “oracle_endpoint”. Debemos pegar el valor sin el puerto.
 
 Por último, hay que definir la variable de entorno TNS_ADMIN:
 
@@ -286,7 +288,7 @@ Por último, hay que definir la variable de entorno TNS_ADMIN:
 export TNS_ADMIN=/home/ec2-user/tnsnames
 ```
 
-
+<br/>
 
 #### Creando la estructura inicial de directorios para GoldenGate Classic
 
@@ -305,7 +307,7 @@ CREATE SUBDIRS
 
 Como resultado se generarán todos los directorios que Oracle GoldenGate necesita.
 
-
+<br/>
 
 #### Creando el almacén de credenciales
 
@@ -323,7 +325,7 @@ Después, añadimos los datos referentes a la conexión que hemos definido anter
 alter credentialstore add user oggadm1@ORARDS, password oggadm1, alias orards 
 ```
 
-
+<br/>
 
 #### Inicializando el componente Manager
 
@@ -354,7 +356,7 @@ info mgr
 
 y verificamos que está en estado RUNNING
 
-
+<br/>
 
 #### Comprobando la instalación
 
@@ -374,13 +376,13 @@ Si todo está correcto, veremos un mensaje indicando que se ha hecho login en la
 
 - Necesitamos el fichero asociado a la release de **GoldenGate for Big Data**.Para ello, accedemos a la página de descargas de Oracle y seleccionamos “[Oracle GoldenGate for Big Data 19.1.0.0.5 on Linux x86-64](https://www.oracle.com/es/middleware/technologies/goldengate-downloads.html#license-lightbox)”. 
 
-
+<br/>
 
 ### Instalación y configuración de Oracle GoldenGate For Big Data
 
 #### Instalando el producto
 
-Para instalar Oracle GoldenGate for Big Data lanzamos la siguiente secuencia de comandos desde la terminal de la instancia EC2 donde hemos copiado la distribución del producto. En mi caso, la distribución tiene el nombre “OGG_BigData_Linux_x64_19.1.0.0.5.zip“:
+Para instalar Oracle GoldenGate for Big Data lanzamos la siguiente secuencia de comandos desde la terminal de la instancia EC2 donde hemos copiado la distribución del producto (la IP la podemos encontrar en la salida del script de Terraform, en la variable "oracle_gg_bigdata_public_ip"): 
 
 ```
 mkdir /home/ec2-user/ggbd
@@ -408,7 +410,7 @@ Aparecerá la consola de GGSCI:
 
 ![img](readme/img/ggsci.png)
 
-
+<br/>
 
 #### Creando la estructura inicial de directorios
 
@@ -422,6 +424,8 @@ Como resultado, se crea toda la estructura de carpetas necesaria para GoldenGate
 
 ![img](readme/img/subdirs.png)
 
+<br/>
+
 #### Configurando el Manager
 
 Como hemos hecho anteriormente en GoldenGate Classic, lo primero que tenemos que hacer es crear el fichero de parámetros correspondiente al Manager. Para ello, en GGSCI escribimos:
@@ -434,7 +438,8 @@ edit params mgr
 En el editor vi que se abre, escribimos:
 
 ```
-PORT 28710ACCESSRULE, PROG *, IPADDR *, ALLOW
+PORT 28710
+ACCESSRULE, PROG *, IPADDR *, ALLOW
 ```
 
 Arrancamos el manager:
@@ -449,18 +454,18 @@ Y comprobamos que se levanta correctamente:
 info all
 ```
 
-
+<br/>
 
 #### Abriendo los puertos del firewall
 
-Igual que hicimos en el post anterior con la instancia EC2 de Oracle GoldenGate Postgresql, tenemos que hacer lo mismo para que sea posible establecer la conexión desde la instancia EC2 de GoldeGate Classic. Ejecutamos:
+Igual que hicimos en el post anterior con la instancia EC2 de Oracle GoldenGate Postgresql, tenemos que hacer lo mismo para que sea posible establecer la conexión desde la instancia EC2 de GoldeGate Classic a GoldenGate for Big Data. Para ello, salimos de GGSCI y ejecutamos:
 
 ```
 sudo firewall-cmd --permanent --add-port=1000-61000/tcp
 sudo firewall-cmd --reload
 ```
 
-
+<br/>
 
 #### Instalando Kafka
 
@@ -478,13 +483,15 @@ cd /home/ec2-user
 tar -xzf /tmp/kafka_2.13-2.8.0.tgz
 ```
 
-
+<br/><br/>
 
 ## Implementando el proceso de replicación de cambios a Kafka
 
 ### Creando el extract (en GG Classic)
 
-Nos conectamos de a la máquina EC2 de GoldenGate Classic y entramos en GGSCI
+Nos conectamos de a la **máquina EC2 de GoldenGate Classic** y volvemos a entrar en GGSCI
+
+<br/>
 
 #### Creando el fichero de parámetros
 
@@ -502,6 +509,8 @@ Como siempre que creamos o editamos ficheros de parámetros, GGSCI abre un edito
 extract ecdcbd
 useridalias orards
 exttrail ./dirdat/lt
+IGNOREDELETES
+IGNOREUPDATES
 table oracledb.customers;
 ```
 
@@ -510,7 +519,11 @@ En este fichero de parámetros, estamos diciendo a GoldenGate que:
 1. está asociado al extract “ecdcbd”
 2. usa el almacén de credenciales para conectarse a la base de datos Oracle
 3. se asocia a los ficheros locales de “trail” con prefijo “lt”
-4. va a procesar los cambios correspondientes a la tabla CUSTOMERS del esquema “oracledb”
+4. se van a ignorar los DELETES 
+5. se van a ignorar los UPDATES
+6. va a procesar los cambios correspondientes a la tabla CUSTOMERS del esquema “oracledb”
+
+<br/>
 
 
 
@@ -520,13 +533,13 @@ Una vez hemos definido el fichero de parámetros, tenemos que crear el extract. 
 
 1. Hacemos login en la base de datos:
 
-```bash
-dblogin useridalias orards
-```
+   ```bash
+   dblogin useridalias orards
+   ```
 
 2. Registramos el extract en la base de datos:
 
-   ```
+   ```bash
    register extract ecdcbd database
    ```
 
@@ -548,7 +561,7 @@ dblogin useridalias orards
    add exttrail ./dirdat/lt, extract ecdcbd
    ```
 
-   
+   <br/>
 
 Ahora podemos iniciar el extract para que empiece a capturar datos y generando ficheros trail locales con prefijo “lt”. Para ello, lanzamos:
 
@@ -564,11 +577,11 @@ info ecdcbd
 
 Y comprobamos que el estado es RUNNING.
 
-
+<br/>
 
 ### Creando el data pump (en GG Classic)
 
-Una vez que tenemos el extract, tenemos que configurar el data pump o extract secundario. Para ello, ejecutamos:
+Una vez que tenemos el extracto, tenemos que configurar el data pump o extract secundario. Para ello, ejecutamos:
 
 ```
 edit params pcdcbd
@@ -590,6 +603,8 @@ table oracledb.customers, tokens(txid = @getenv('transaction', 'xid'), csn = @ge
 
 Debemos reemplazar #IP_PRIVADA_EC2_GG_BIG_DATA# por el valor que tenga en la salida del script de Terraform. En concreto, la clave: “oracle_gg_bigdata_private_ip”
 
+
+
 En este fichero estamos diciendo:
 
 1. es el fichero asociado al data pump “pcdcbd”
@@ -604,6 +619,7 @@ A continuación vamos a añadir el Data Pump. Primero tenemos que hacer login:
 ```
 dblogin useridalias orards
 ```
+
 
 
 Después, lanzamos el siguiente comando para añadir el Data Pump, indicando que está activo desde este mismo momento:
@@ -634,9 +650,13 @@ obteniendo un resultado similar al siguiente:
 
 ![img](readme/img/datapump_running.png)
 
+<br/>
+
 ### Implementando el replicat en GoldenGate for Big Data
 
-El siguiente paso es publicar los cambios, recibidos en el fichero trail remoto, en el bus de eventos.Para ello, lo primero es abrir GGSCI en la máquina donde hemos instalado Oracle GoldenGate for Big Data. Una vez dentro, como siempre, lo primero es crear el fichero de parámetros asociado al replicat. Escribimos:
+El siguiente paso es publicar los cambios, recibidos en el fichero trail remoto, en el bus de eventos.Para ello, lo primero es abrir GGSCI en la **máquina donde hemos instalado Oracle GoldenGate for Big Data**. 
+
+Una vez dentro, como siempre, lo primero es crear el fichero de parámetros asociado al replicat. Escribimos:
 
 ```
 edit params rcdcbd
@@ -656,6 +676,8 @@ En este fichero estamos diciendo que:
 - es el fichero asociado al replicat rcdcbd
 - que va a usar la librería java para conectarse a Kafka y que las propiedades se definen en el fichero dirprm/rcdcbd.props
 - se van a publicar los cambios en la tabla customers de oracledb 
+
+<br/>
 
 Como vemos en el fichero de parámetros se hace referencia a las propiedades que se utilizarán para conectarse a Kafka y que, indicamos, que están en el fichero dirprm/rcdcbd_kc.props. Vamos a crear este fichero con los valores adecuados.
 Para ello, salimos de GGSCI e introducimos:
@@ -720,9 +742,11 @@ En este fichero, las propiedades interesantes son:
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | gg.handlerlist                                               | Estamos indicando que vamos a usar el adaptador de Kafka Connect |
 | gg.handler.kafkaconnect.kafkaProducerConfigFile=<br />kafkaconnect.properties | Fichero que contiene las propiedades de Kafka Connect (tenemos que crear este fichero) |
-| gg.handler.kafkaconnect.topicMappingTemplate=<br />goldengate.${schemaName}.${tableName} | Fichero que contiene las propiedades de Kafka Connect (tenemos que crear este fichero)Aquí indicamos que la nomenclatura de los topics que va a crear en Kafka será “goldengate.nombre_esquea.nombre_tabla”. En nuestro caso, dará como resultado “goldengate.oracledb.customers” |
+| gg.handler.kafkaconnect.topicMappingTemplate=<br />goldengate.${schemaName}.${tableName} | Aquí indicamos que la nomenclatura de los topics que va a crear en Kafka será “goldengate.nombre_esquema.nombre_tabla”. En nuestro caso, dará como resultado “goldengate.oracledb.customers” |
 | gg.handler.kafkaconnect.keyMappingTemplate=${primaryKeys}    | Indicamos que la template para la key de los mensajes publicados en Kafka van a ser la claves primarias de la tablas |
 | gg.handler.kafkaconnect.insertOpKey=I<br />gg.handler.kafkaconnect.updateOpKey=U<br />gg.handler.kafkaconnect.deleteOpKey=D | Las claves que incluirá para indicar si la acción que se ha realizado en base de datos es un INSERT, UPDATE o DELETE |
+
+<br />
 
 Como se indica en la propiedad “gg.handler.kafkaconnect.kafkaProducerConfigFile=kafkaconnect.properties“ tenemos que disponer de un fichero que contenga las propiedades de Kafka Connect. Para ello, ejecutamos:
 
@@ -731,9 +755,14 @@ cd /home/ec2-user/ggbd/dirprm
 vi kafkaconnect.properties
 ```
 
+
+
 En el editor, copiamos:
 
-```
+```bash
+bootstrap.servers=#KAFKA#
+acks=1
+
 #JSON Converter Settings
 key.converter=org.apache.kafka.connect.json.JsonConverter
 key.converter.schemas.enable=false
@@ -750,7 +779,11 @@ linger.ms=0
 converter.type=key
 ```
 
-reemplanzando #KAFKA# por la dirección de nuestro entorno. En mi caso, MSK lo expone en “b-1.mskggdemo.ivdgsa.c6.kafka.eu-west-1.amazonaws.com:9094“ 
+
+
+reemplanzando #KAFKA# por la dirección de nuestro entorno, indicada en la variable "msk_bootstrap_brokers" de la salida del script de Terraform. Basta con coger la dirección de uno de los brokers
+
+
 
 Ya podemos crear el replicat como tal. Para ello, accedemos a GGSCI de nuevo (en GoldenGate For Big Data) y escribimos:
 
@@ -758,10 +791,19 @@ Ya podemos crear el replicat como tal. Para ello, accedemos a GGSCI de nuevo (en
 add replicat rcdcbd, exttrail ./dirdat/rt
 ```
 
-Lo arrancamos y comprobamos que arranca correctamente:
+
+
+Lo arrancamos:
 
 ```
 start rcdcbd
+```
+
+
+
+y comprobamos que se encuentra en estado RUNNING:
+
+```
 info rcdcbd
 ```
 
@@ -778,64 +820,95 @@ bin/kafka-console-consumer.sh --topic goldengate.ORACLEDB.CUSTOMERS --bootstrap-
 
 reemplazando #BOOTSTRAP_SERVER# por el valor obtenido al finalizar la ejecución del script de Terraform. 
 
-En este punto, la consola se queda “en espera” de que se publique algún mensaje en el topic. Ahora vamos a provocar esa publicación realizando un cambio en la base de datos Oracle. Para ello, lanzamos la siguiente sentencia SQL sobre la base de datos Oracle:
+
+
+En este punto, la consola se queda “en espera” de que se publique algún mensaje en el topic. Puede ocurrir que veamos un mensaje de este tipo:
 
 ```
-UPDATE ORACLEDB.CUSTOMERS SET NOMBRE = 'Kafka' WHERE ID=1;
+[2021-09-07 22:26:25,357] WARN [Consumer clientId=consumer-console-consumer-61225-1, groupId=console-consumer-61225] Error while fetching metadata with correlation id 2 : {goldengate.ORACLEDB.CUSTOMERS=LEADER_NOT_AVAILABLE} (org.apache.kafka.clients.NetworkClient)
+```
+
+No nos tenemos que preocupar por ese mensaje. 
+
+
+
+Ahora vamos a provocar esa publicación realizando una inserción en la base de datos Oracle. Para ello, lanzamos la siguiente sentencia SQL sobre la base de datos Oracle:
+
+```
+INSERT INTO CUSTOMERS (NIF, EMAIL, TELEFONO, NOMBRE, TIPO) VALUES ('11111111H', 'test9@gmail.com', '222222222', 'test9', '1');
 COMMIT;
 ```
+
+
 
 Una vez ejecutada y efectuado el commit, volvemos a la consola donde hemos abierto el consumidor y debemos ver el mensaje publicado:
 
 ```
 {
-   "table":"ORACLEDB.CUSTOMERS",
-   "op_type":"U",
-   "op_ts":"2021-06-15 14:49:00.000197",
-   "current_ts":"2021-06-15 14:49:06.383000",
-   "pos":"00000000000000004561",
-   "primary_keys":[
-      "ID"
-   ],
-   "tokens":{
-      "txid":"0.9.32.855",
-      "csn":"2201855"
-   },
-   "before":{
-      "ID":1.0,
-      "NIF":"11111111H",
-      "CIF":null,
-      "EMAIL":"test1@email.com",
-      "TELEFONO":"111111111",
-      "NOMBRE":"test1 - upd",
-      "RAZONSOCIAL":null,
-      "DESCRIPCION":null,
-      "TIPO":1.0,
-      "REPRESENTANTE":null
-   },
-   "after":{
-      "ID":1.0,
-      "NIF":null,
-      "CIF":null,
-      "EMAIL":null,
-      "TELEFONO":null,
-      "NOMBRE":"Kafka",
-      "RAZONSOCIAL":null,
-      "DESCRIPCION":null,
-      "TIPO":null,
-      "REPRESENTANTE":null
-   }
+  "table": "ORACLEDB.CUSTOMERS",
+  "op_type": "I",
+  "op_ts": "2021-09-07 22:28:57.000139",
+  "current_ts": "2021-09-07 22:29:02.888000",
+  "pos": "00000000000000002446",
+  "primary_keys": [
+    "ID"
+  ],
+  "tokens": {
+    "txid": "0.6.23.552",
+    "csn": "791065"
+  },
+  "before": null,
+  "after": {
+    "ID": 21,
+    "NIF": "11111111H",
+    "CIF": null,
+    "EMAIL": "test9@gmail.com",
+    "TELEFONO": "222222222",
+    "NOMBRE": "test9",
+    "RAZONSOCIAL": null,
+    "DESCRIPCION": null,
+    "TIPO": 1,
+    "REPRESENTANTE": null
+  }
 }
 ```
 
 En el mensaje tenemos la información completa de:
 
-- Dónde se ha producido el cambio ("table":"ORACLEDB.CUSTOMERS")
-- Tipo de cambio ("op_type":"U")
-- Fecha del cambio ("op_ts":"2021-06-15 14:49:00.000197")
+- Tabla en la que se ha producido el cambio ("table":"ORACLEDB.CUSTOMERS")
+- Tipo de cambio ("op_type":"I")
+- Fecha del cambio ("op_ts":"2021-09-07 22:28:57.000139")
 - Información de la transacción ("tokens")
-- Valor de todos los campos en el momento anterior a la modificación ("before")
-- Valor de los campos que se han modificado ("after"). Atención a que solo se incluyen los campos que han sido modificados y la clave primaria
+- Valor de los campos que se han insertado ("after"). 
+
+<br/>
+
+Probando actualizaciones y borrados
+
+Al principio del post se ha indicado que Negocio solo quiere que se notifique en caso de clientes nuevos. Para ello, al crear el extract en GoldenGate Classic, en el fichero de parámetros hemos indicado: 
+
+```
+IGNOREDELETES
+IGNOREUPDATES
+```
+
+
+
+Si lanzamos una actualización sobre la nueva fila que hemos creado, no deberíamos ver ningún mensaje nuevo en la consola de Kafka. Para ello, lanzamos la siguiente sentencia SQL sobre la base de datos Oracle:
+
+```sql
+UPDATE CUSTOMERS SET NOMBRE='test9-mod' WHERE ID=<valor ID obtenido al insertar>;
+COMMIT;
+```
+
+
+
+Si observamos la consola de Kafka veremos que no se recibe ningún mensaje. Lo mismo si intentamos eliminarla:
+
+```sql
+DELETE CUSTOMERS WHERE ID=<valor ID obtenido al insertar>;
+COMMIT;
+```
 
 <br/><br/>
 
